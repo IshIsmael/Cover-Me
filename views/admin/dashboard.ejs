@@ -1,0 +1,293 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title><%= title %></title>
+    <link rel="stylesheet" href="/css/admin.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div class="admin-container">
+        <!-- Sidebar Navigation -->
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <h2>Southgate LC</h2>
+                <p>Admin Panel</p>
+            </div>
+            
+            <nav class="sidebar-nav">
+                <ul>
+                    <li>
+                        <a href="/admin/dashboard" class="nav-link active">
+                            <span class="nav-icon">📊</span>
+                            <span class="nav-text">Dashboard</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="/admin/cover" class="nav-link">
+                            <span class="nav-icon">📋</span>
+                            <span class="nav-text">Your Cover</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="/admin/get-cover" class="nav-link">
+                            <span class="nav-icon">➕</span>
+                            <span class="nav-text">Get Cover</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="/admin/instructors" class="nav-link">
+                            <span class="nav-icon">👥</span>
+                            <span class="nav-text">Instructors</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="/admin/timetable" class="nav-link">
+                            <span class="nav-icon">📅</span>
+                            <span class="nav-text">Timetable</span>
+                        </a>
+                    </li>
+                </ul>
+            </nav>
+            
+            <div class="sidebar-footer">
+                <div class="user-info">
+                    <div class="user-avatar">
+                        <%= user.profile.firstName.charAt(0) %><%= user.profile.lastName.charAt(0) %>
+                    </div>
+                    <div class="user-details">
+                        <div class="user-name"><%= user.profile.firstName %> <%= user.profile.lastName %></div>
+                        <div class="user-role">Administrator</div>
+                    </div>
+                </div>
+                <a href="/auth/logout" class="logout-btn">Sign Out</a>
+            </div>
+        </aside>
+
+        <!-- Main Content Area -->
+        <main class="main-content">
+            <!-- Top Header -->
+            <header class="content-header">
+                <div class="header-left">
+                    <h1 class="page-title">Dashboard</h1>
+                    <p class="page-subtitle">Overview of your leisure centre operations</p>
+                </div>
+            </header>
+
+            <!-- Flash Messages -->
+            <div class="flash-messages">
+                <% if (error_msg && error_msg.length > 0) { %>
+                    <div class="alert alert-error">
+                        <span class="alert-icon">⚠️</span>
+                        <span class="alert-text"><%= error_msg %></span>
+                        <button class="alert-close" onclick="this.parentElement.style.display='none'">×</button>
+                    </div>
+                <% } %>
+
+                <% if (success_msg && success_msg.length > 0) { %>
+                    <div class="alert alert-success">
+                        <span class="alert-icon">✅</span>
+                        <span class="alert-text"><%= success_msg %></span>
+                        <button class="alert-close" onclick="this.parentElement.style.display='none'">×</button>
+                    </div>
+                <% } %>
+
+                <% if (errors && errors.length > 0) { %>
+                    <div class="alert alert-error">
+                        <span class="alert-icon">⚠️</span>
+                        <div class="alert-text">
+                            <% errors.forEach(function(error) { %>
+                                <div><%= error.msg %></div>
+                            <% }); %>
+                        </div>
+                        <button class="alert-close" onclick="this.parentElement.style.display='none'">×</button>
+                    </div>
+                <% } %>
+            </div>
+
+            <!-- Page Content -->
+            <div class="page-content">
+                <!-- Stats Overview -->
+                <div class="grid grid-4">
+                    <div class="stat-card stat-pending">
+                        <div class="stat-icon">👤</div>
+                        <div class="stat-content">
+                            <div class="stat-number"><%= stats.pendingInstructors %></div>
+                            <div class="stat-label">Pending Approvals</div>
+                            <% if (stats.pendingInstructors > 0) { %>
+                                <a href="/admin/instructors" class="stat-action">Review Now</a>
+                            <% } %>
+                        </div>
+                    </div>
+
+                    <div class="stat-card stat-success">
+                        <div class="stat-icon">✅</div>
+                        <div class="stat-content">
+                            <div class="stat-number"><%= stats.approvedInstructors %></div>
+                            <div class="stat-label">Active Instructors</div>
+                            <a href="/admin/instructors" class="stat-action">View All</a>
+                        </div>
+                    </div>
+
+                    <div class="stat-card stat-warning">
+                        <div class="stat-icon">📋</div>
+                        <div class="stat-content">
+                            <div class="stat-number"><%= stats.openCoverRequests %></div>
+                            <div class="stat-label">Open Cover Requests</div>
+                            <% if (stats.openCoverRequests > 0) { %>
+                                <a href="/admin/cover" class="stat-action">Manage</a>
+                            <% } %>
+                        </div>
+                    </div>
+
+                    <div class="stat-card stat-info">
+                        <div class="stat-icon">📄</div>
+                        <div class="stat-content">
+                            <div class="stat-number"><%= stats.pendingDocuments %></div>
+                            <div class="stat-label">Documents to Review</div>
+                            <% if (stats.pendingDocuments > 0) { %>
+                                <a href="/admin/documents" class="stat-action">Review</a>
+                            <% } %>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Quick Actions -->
+                <div class="card">
+                    <div class="card-header">
+                        <h3 class="card-title">Quick Actions</h3>
+                        <p class="card-subtitle">Common administrative tasks</p>
+                    </div>
+                    <div class="card-body">
+                        <div class="quick-actions-grid">
+                            <a href="/admin/get-cover" class="quick-action-card">
+                                <div class="quick-action-icon">➕</div>
+                                <div class="quick-action-content">
+                                    <div class="quick-action-title">Create Cover Request</div>
+                                    <div class="quick-action-desc">Post a new cover opportunity</div>
+                                </div>
+                            </a>
+
+                            <a href="/admin/timetable" class="quick-action-card">
+                                <div class="quick-action-icon">📅</div>
+                                <div class="quick-action-content">
+                                    <div class="quick-action-title">Manage Timetable</div>
+                                    <div class="quick-action-desc">Update class schedules</div>
+                                </div>
+                            </a>
+
+                            <a href="/admin/instructors" class="quick-action-card">
+                                <div class="quick-action-icon">👥</div>
+                                <div class="quick-action-content">
+                                    <div class="quick-action-title">Instructor Management</div>
+                                    <div class="quick-action-desc">Approve and manage instructors</div>
+                                </div>
+                            </a>
+
+                            <a href="/admin/reports" class="quick-action-card">
+                                <div class="quick-action-icon">📊</div>
+                                <div class="quick-action-content">
+                                    <div class="quick-action-title">Generate Reports</div>
+                                    <div class="quick-action-desc">Payroll and analytics</div>
+                                </div>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Recent Activity -->
+                <div class="grid grid-2">
+                    <!-- Pending Instructor Approvals -->
+                    <div class="card">
+                        <div class="card-header">
+                            <h3 class="card-title">Recent Registrations</h3>
+                            <p class="card-subtitle">New instructors awaiting approval</p>
+                        </div>
+                        <div class="card-body">
+                            <% if (recentInstructors.length === 0) { %>
+                                <div class="empty-state">
+                                    <div class="empty-state-icon">✨</div>
+                                    <div class="empty-state-text">No pending registrations</div>
+                                </div>
+                            <% } else { %>
+                                <div class="activity-list">
+                                    <% recentInstructors.forEach(function(instructor) { %>
+                                        <div class="activity-item">
+                                            <div class="activity-avatar">
+                                                <%= instructor.profile.firstName.charAt(0) %><%= instructor.profile.lastName.charAt(0) %>
+                                            </div>
+                                            <div class="activity-content">
+                                                <div class="activity-title">
+                                                    <%= instructor.profile.firstName %> <%= instructor.profile.lastName %>
+                                                </div>
+                                                <div class="activity-subtitle"><%= instructor.email %></div>
+                                                <div class="activity-time">
+                                                    <%= new Date(instructor.createdAt).toLocaleDateString('en-GB') %>
+                                                </div>
+                                            </div>
+                                            <a href="/admin/instructors" class="btn btn-sm btn-primary">Review</a>
+                                        </div>
+                                    <% }); %>
+                                </div>
+                            <% } %>
+                        </div>
+                        <% if (recentInstructors.length > 0) { %>
+                            <div class="card-footer">
+                                <a href="/admin/instructors" class="card-footer-link">View all instructors →</a>
+                            </div>
+                        <% } %>
+                    </div>
+
+                    <!-- Recent Cover Requests -->
+                    <div class="card">
+                        <div class="card-header">
+                            <h3 class="card-title">Open Cover Requests</h3>
+                            <p class="card-subtitle">Classes needing instructor cover</p>
+                        </div>
+                        <div class="card-body">
+                            <% if (recentCoverRequests.length === 0) { %>
+                                <div class="empty-state">
+                                    <div class="empty-state-icon">📅</div>
+                                    <div class="empty-state-text">No open cover requests</div>
+                                </div>
+                            <% } else { %>
+                                <div class="activity-list">
+                                    <% recentCoverRequests.forEach(function(request) { %>
+                                        <div class="activity-item">
+                                            <div class="activity-icon cover-icon">📋</div>
+                                            <div class="activity-content">
+                                                <div class="activity-title">
+                                                    <%= request.session ? request.session.className : 'Unknown Class' %>
+                                                </div>
+                                                <div class="activity-subtitle">
+                                                    <% if (request.session) { %>
+                                                        <%= ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'][request.session.dayOfWeek] %> at <%= request.session.startTime %>
+                                                    <% } %>
+                                                </div>
+                                                <div class="activity-time">
+                                                    Requested by <%= request.requestedBy ? request.requestedBy.profile.firstName : 'Admin' %>
+                                                </div>
+                                            </div>
+                                            <span class="status-badge status-open">Open</span>
+                                        </div>
+                                    <% }); %>
+                                </div>
+                            <% } %>
+                        </div>
+                        <% if (recentCoverRequests.length > 0) { %>
+                            <div class="card-footer">
+                                <a href="/admin/cover" class="card-footer-link">View all cover requests →</a>
+                            </div>
+                        <% } %>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script src="/js/admin.js"></script>
+</body>
+</html>

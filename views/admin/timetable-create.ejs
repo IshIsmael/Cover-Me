@@ -1,0 +1,444 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title><%= title %></title>
+    <link rel="stylesheet" href="/css/admin.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div class="admin-container">
+        <!-- Sidebar Navigation -->
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <h2>Southgate LC</h2>
+                <p>Admin Panel</p>
+            </div>
+            
+            <nav class="sidebar-nav">
+                <ul>
+                    <li>
+                        <a href="/admin/dashboard" class="nav-link">
+                            <span class="nav-icon">📊</span>
+                            <span class="nav-text">Dashboard</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="/admin/cover" class="nav-link">
+                            <span class="nav-icon">📋</span>
+                            <span class="nav-text">Your Cover</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="/admin/get-cover" class="nav-link">
+                            <span class="nav-icon">➕</span>
+                            <span class="nav-text">Get Cover</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="/admin/instructors" class="nav-link">
+                            <span class="nav-icon">👥</span>
+                            <span class="nav-text">Instructors</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="/admin/timetable" class="nav-link active">
+                            <span class="nav-icon">📅</span>
+                            <span class="nav-text">Timetable</span>
+                        </a>
+                    </li>
+                </ul>
+            </nav>
+            
+            <div class="sidebar-footer">
+                <div class="user-info">
+                    <div class="user-avatar">
+                        <%= user.profile.firstName.charAt(0) %><%= user.profile.lastName.charAt(0) %>
+                    </div>
+                    <div class="user-details">
+                        <div class="user-name"><%= user.profile.firstName %> <%= user.profile.lastName %></div>
+                        <div class="user-role">Administrator</div>
+                    </div>
+                </div>
+                <a href="/auth/logout" class="logout-btn">Sign Out</a>
+            </div>
+        </aside>
+
+        <!-- Main Content Area -->
+        <main class="main-content">
+            <!-- Top Header -->
+            <header class="content-header">
+                <div class="header-left">
+                    <h1 class="page-title">Create Timetable Template</h1>
+                    <p class="page-subtitle">Set up a new schedule framework</p>
+                </div>
+            </header>
+
+            <!-- Flash Messages -->
+            <div class="flash-messages">
+                <% if (error_msg && error_msg.length > 0) { %>
+                    <div class="alert alert-error">
+                        <span class="alert-icon">⚠️</span>
+                        <span class="alert-text"><%= error_msg %></span>
+                        <button class="alert-close" onclick="this.parentElement.style.display='none'">×</button>
+                    </div>
+                <% } %>
+
+                <% if (success_msg && success_msg.length > 0) { %>
+                    <div class="alert alert-success">
+                        <span class="alert-icon">✅</span>
+                        <span class="alert-text"><%= success_msg %></span>
+                        <button class="alert-close" onclick="this.parentElement.style.display='none'">×</button>
+                    </div>
+                <% } %>
+
+                <% if (errors && errors.length > 0) { %>
+                    <div class="alert alert-error">
+                        <span class="alert-icon">⚠️</span>
+                        <div class="alert-text">
+                            <% errors.forEach(function(error) { %>
+                                <div><%= error.msg %></div>
+                            <% }); %>
+                        </div>
+                        <button class="alert-close" onclick="this.parentElement.style.display='none'">×</button>
+                    </div>
+                <% } %>
+            </div>
+
+            <!-- Page Content -->
+            <div class="page-content">
+                <div class="form-container">
+                    <div class="card">
+                        <div class="card-header">
+                            <h3 class="card-title">Template Details</h3>
+                            <p class="card-subtitle">Create the schedule framework - you'll add sessions in the next step</p>
+                        </div>
+                        <div class="card-body">
+                            <form action="/admin/timetable/create" method="POST" id="createTemplateForm">
+                                <!-- Template Name -->
+                                <div class="form-group">
+                                    <label for="name" class="form-label">
+                                        Template Name
+                                        <span class="required">*</span>
+                                    </label>
+                                    <input 
+                                        type="text" 
+                                        id="name" 
+                                        name="name" 
+                                        class="form-control" 
+                                        placeholder="e.g., Autumn 2024 Schedule"
+                                        required
+                                    >
+                                    <small class="form-help">Give this template a descriptive name</small>
+                                </div>
+
+                                <!-- Template Type -->
+                                <div class="form-group">
+                                    <label for="type" class="form-label">
+                                        Template Type
+                                        <span class="required">*</span>
+                                    </label>
+                                    <select id="type" name="type" class="form-control" required>
+                                        <option value="">Select type...</option>
+                                        <option value="weekly">Weekly - Classes repeat every week</option>
+                                        <option value="bi-weekly">Bi-weekly - Classes repeat every two weeks</option>
+                                    </select>
+                                    <small class="form-help">Choose how often the schedule repeats</small>
+                                </div>
+
+                                <!-- Date Range -->
+                                <div class="form-row">
+                                    <div class="form-group">
+                                        <label for="effectiveFrom" class="form-label">
+                                            Start Date
+                                            <span class="required">*</span>
+                                        </label>
+                                        <input 
+                                            type="date" 
+                                            id="effectiveFrom" 
+                                            name="effectiveFrom" 
+                                            class="form-control"
+                                            required
+                                        >
+                                        <small class="form-help">When does this schedule begin?</small>
+                                    </div>
+
+                                    <div class="form-group">
+                                        <label for="effectiveTo" class="form-label">
+                                            End Date
+                                        </label>
+                                        <input 
+                                            type="date" 
+                                            id="effectiveTo" 
+                                            name="effectiveTo" 
+                                            class="form-control"
+                                        >
+                                        <div class="checkbox-wrapper">
+                                            <input 
+                                                type="checkbox" 
+                                                id="noEndDate" 
+                                                name="noEndDate"
+                                            >
+                                            <label for="noEndDate">This template has no end date</label>
+                                        </div>
+                                        <small class="form-help">Leave blank or check box for ongoing schedule</small>
+                                    </div>
+                                </div>
+
+                                <!-- Info Box -->
+                                <div class="info-box">
+                                    <div class="info-icon">ℹ️</div>
+                                    <div class="info-content">
+                                        <strong>Important:</strong> Templates that overlap with the current active schedule must have an end date. 
+                                        After creating this template, you'll be able to add individual class sessions.
+                                    </div>
+                                </div>
+
+                                <!-- Form Actions -->
+                                <div class="form-actions">
+                                    <a href="/admin/timetable" class="btn btn-secondary">Cancel</a>
+                                    <button type="submit" class="btn btn-primary">Create Template</button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+
+                    <!-- Help Section -->
+                    <div class="card">
+                        <div class="card-header">
+                            <h3 class="card-title">What's Next?</h3>
+                        </div>
+                        <div class="card-body">
+                            <div class="steps-list">
+                                <div class="step-item">
+                                    <div class="step-number">1</div>
+                                    <div class="step-content">
+                                        <div class="step-title">Create Template</div>
+                                        <div class="step-desc">Set up the schedule framework with dates and type</div>
+                                    </div>
+                                </div>
+                                <div class="step-item">
+                                    <div class="step-number">2</div>
+                                    <div class="step-content">
+                                        <div class="step-title">Add Sessions</div>
+                                        <div class="step-desc">Add individual class sessions with times and venues</div>
+                                    </div>
+                                </div>
+                                <div class="step-item">
+                                    <div class="step-number">3</div>
+                                    <div class="step-content">
+                                        <div class="step-title">Assign Instructors</div>
+                                        <div class="step-desc">Assign permanent instructors or mark as open shifts</div>
+                                    </div>
+                                </div>
+                                <div class="step-item">
+                                    <div class="step-number">4</div>
+                                    <div class="step-content">
+                                        <div class="step-title">Activate Template</div>
+                                        <div class="step-desc">Make this the active schedule for your centre</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script src="/js/admin.js"></script>
+    
+    <script>
+        // Handle no end date checkbox
+        const noEndDateCheckbox = document.getElementById('noEndDate');
+        const effectiveToInput = document.getElementById('effectiveTo');
+
+        noEndDateCheckbox.addEventListener('change', function() {
+            if (this.checked) {
+                effectiveToInput.value = '';
+                effectiveToInput.disabled = true;
+                effectiveToInput.removeAttribute('required');
+            } else {
+                effectiveToInput.disabled = false;
+            }
+        });
+
+        // Form validation
+        document.getElementById('createTemplateForm').addEventListener('submit', function(e) {
+            const fromDate = new Date(document.getElementById('effectiveFrom').value);
+            const toDate = document.getElementById('effectiveTo').value ? new Date(document.getElementById('effectiveTo').value) : null;
+            const noEndDate = document.getElementById('noEndDate').checked;
+
+            // Check if to date is after from date
+            if (toDate && fromDate >= toDate) {
+                e.preventDefault();
+                alert('End date must be after start date');
+                return false;
+            }
+
+            // If no end date is checked, clear the to date value
+            if (noEndDate) {
+                document.getElementById('effectiveTo').value = '';
+            }
+        });
+    </script>
+
+    <style>
+    .form-container {
+        max-width: 900px;
+        margin: 0 auto;
+    }
+
+    .form-group {
+        margin-bottom: 24px;
+    }
+
+    .form-label {
+        display: block;
+        font-weight: 600;
+        color: #1a202c;
+        margin-bottom: 8px;
+        font-size: 14px;
+    }
+
+    .required {
+        color: #dc3545;
+    }
+
+    .form-control {
+        width: 100%;
+        padding: 12px 16px;
+        border: 1px solid #e2e8f0;
+        border-radius: 8px;
+        font-size: 14px;
+        color: #1a202c;
+        transition: border-color 0.2s ease;
+    }
+
+    .form-control:focus {
+        outline: none;
+        border-color: #28a745;
+        box-shadow: 0 0 0 3px rgba(40, 167, 69, 0.1);
+    }
+
+    .form-control:disabled {
+        background-color: #f8f9fa;
+        cursor: not-allowed;
+    }
+
+    .form-help {
+        display: block;
+        margin-top: 6px;
+        font-size: 12px;
+        color: #6c757d;
+    }
+
+    .form-row {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 20px;
+    }
+
+    .checkbox-wrapper {
+        display: flex;
+        align-items: center;
+        margin-top: 12px;
+        padding: 12px;
+        background: #f8f9fa;
+        border-radius: 6px;
+    }
+
+    .checkbox-wrapper input[type="checkbox"] {
+        width: 18px;
+        height: 18px;
+        margin-right: 8px;
+        cursor: pointer;
+    }
+
+    .checkbox-wrapper label {
+        cursor: pointer;
+        font-size: 14px;
+        color: #495057;
+        margin: 0;
+    }
+
+    .info-box {
+        display: flex;
+        padding: 16px;
+        background: #e7f6ec;
+        border-left: 4px solid #28a745;
+        border-radius: 8px;
+        margin-bottom: 24px;
+    }
+
+    .info-icon {
+        font-size: 20px;
+        margin-right: 12px;
+    }
+
+    .info-content {
+        font-size: 14px;
+        color: #155724;
+        line-height: 1.6;
+    }
+
+    .form-actions {
+        display: flex;
+        gap: 12px;
+        justify-content: flex-end;
+        padding-top: 24px;
+        border-top: 1px solid #e2e8f0;
+    }
+
+    .steps-list {
+        display: flex;
+        flex-direction: column;
+        gap: 20px;
+    }
+
+    .step-item {
+        display: flex;
+        align-items: flex-start;
+        gap: 16px;
+    }
+
+    .step-number {
+        width: 32px;
+        height: 32px;
+        background: linear-gradient(135deg, #28a745, #20c997);
+        color: white;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 600;
+        font-size: 14px;
+        flex-shrink: 0;
+    }
+
+    .step-content {
+        flex: 1;
+    }
+
+    .step-title {
+        font-weight: 600;
+        color: #1a202c;
+        margin-bottom: 4px;
+    }
+
+    .step-desc {
+        font-size: 14px;
+        color: #6c757d;
+    }
+
+    @media (max-width: 768px) {
+        .form-row {
+            grid-template-columns: 1fr;
+        }
+    }
+    </style>
+</body>
+</html>

@@ -1,0 +1,490 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title><%= title %></title>
+    <link rel="stylesheet" href="/css/admin.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div class="admin-container">
+        <!-- Sidebar Navigation -->
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <h2>Southgate LC</h2>
+                <p>Admin Panel</p>
+            </div>
+            
+            <nav class="sidebar-nav">
+                <ul>
+                    <li>
+                        <a href="/admin/dashboard" class="nav-link">
+                            <span class="nav-icon">📊</span>
+                            <span class="nav-text">Dashboard</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="/admin/cover" class="nav-link">
+                            <span class="nav-icon">📋</span>
+                            <span class="nav-text">Your Cover</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="/admin/get-cover" class="nav-link">
+                            <span class="nav-icon">➕</span>
+                            <span class="nav-text">Get Cover</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="/admin/instructors" class="nav-link">
+                            <span class="nav-icon">👥</span>
+                            <span class="nav-text">Instructors</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="/admin/timetable" class="nav-link active">
+                            <span class="nav-icon">📅</span>
+                            <span class="nav-text">Timetable</span>
+                        </a>
+                    </li>
+                </ul>
+            </nav>
+            
+            <div class="sidebar-footer">
+                <div class="user-info">
+                    <div class="user-avatar">
+                        <%= user.profile.firstName.charAt(0) %><%= user.profile.lastName.charAt(0) %>
+                    </div>
+                    <div class="user-details">
+                        <div class="user-name"><%= user.profile.firstName %> <%= user.profile.lastName %></div>
+                        <div class="user-role">Administrator</div>
+                    </div>
+                </div>
+                <a href="/auth/logout" class="logout-btn">Sign Out</a>
+            </div>
+        </aside>
+
+        <!-- Main Content Area -->
+        <main class="main-content">
+            <!-- Top Header -->
+            <header class="content-header">
+                <div class="header-left">
+                    <h1 class="page-title">Timetable Management</h1>
+                    <p class="page-subtitle">Create and manage class schedules and templates</p>
+                </div>
+                <div class="header-right">
+                    <a href="/admin/timetable/create" class="btn btn-primary">
+                        ➕ Create New Template
+                    </a>
+                </div>
+            </header>
+
+            <!-- Flash Messages -->
+            <div class="flash-messages">
+                <% if (error_msg && error_msg.length > 0) { %>
+                    <div class="alert alert-error">
+                        <span class="alert-icon">⚠️</span>
+                        <span class="alert-text"><%= error_msg %></span>
+                        <button class="alert-close" onclick="this.parentElement.style.display='none'">×</button>
+                    </div>
+                <% } %>
+
+                <% if (success_msg && success_msg.length > 0) { %>
+                    <div class="alert alert-success">
+                        <span class="alert-icon">✅</span>
+                        <span class="alert-text"><%= success_msg %></span>
+                        <button class="alert-close" onclick="this.parentElement.style.display='none'">×</button>
+                    </div>
+                <% } %>
+            </div>
+
+            <!-- Page Content -->
+            <div class="page-content">
+                <!-- Current Active Timetable -->
+                <% if (activeTemplate) { %>
+                    <div class="card">
+                        <div class="card-header">
+                            <div style="display: flex; justify-content: space-between; align-items: center;">
+                                <div>
+                                    <h3 class="card-title">
+                                        📅 Current Timetable: <%= activeTemplate.name %>
+                                    </h3>
+                                    <p class="card-subtitle">
+                                        <%= new Date(activeTemplate.effectiveFrom).toLocaleDateString('en-GB') %> - 
+                                        <%= new Date(activeTemplate.effectiveTo).toLocaleDateString('en-GB') %>
+                                    </p>
+                                </div>
+                                <a href="/admin/timetable/<%= activeTemplate._id %>" class="btn btn-primary">
+                                    View Details
+                                </a>
+                            </div>
+                        </div>
+                        <div class="card-body">
+                            <!-- Weekly Schedule Grid -->
+                            <div class="timetable-grid">
+                                <% 
+                                const days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
+                                const dayNumbers = [1, 2, 3, 4, 5, 6, 0];
+                                %>
+                                
+                                <% dayNumbers.forEach(function(dayNum, index) { 
+                                    const daySessions = currentSessions.filter(s => s.dayOfWeek === dayNum);
+                                %>
+                                    <div class="day-column">
+                                        <div class="day-header">
+                                            <%= days[index] %>
+                                            <span class="session-count">(<%= daySessions.length %>)</span>
+                                        </div>
+                                        <div class="sessions-list">
+                                            <% if (daySessions.length === 0) { %>
+                                                <div class="empty-day">No classes</div>
+                                            <% } else { %>
+                                                <% daySessions.forEach(function(session) { %>
+                                                    <div class="session-card <%= session.assignmentType %>">
+                                                        <div class="session-time">
+                                                            <%= session.startTime %> - <%= session.endTime %>
+                                                        </div>
+                                                        <div class="session-name"><%= session.className %></div>
+                                                        <div class="session-venue"><%= session.venue %></div>
+                                                        <% if (session.permanentInstructor) { %>
+                                                            <div class="session-instructor">
+                                                                👤 <%= session.permanentInstructor.profile.firstName %> <%= session.permanentInstructor.profile.lastName %>
+                                                            </div>
+                                                        <% } else { %>
+                                                            <div class="session-instructor unassigned">
+                                                                👤 Open Shift
+                                                            </div>
+                                                        <% } %>
+                                                    </div>
+                                                <% }); %>
+                                            <% } %>
+                                        </div>
+                                    </div>
+                                <% }); %>
+                            </div>
+
+                            <!-- Summary Stats -->
+                            <div class="timetable-stats">
+                                <div class="stat-item">
+                                    <span class="stat-label">Total Classes:</span>
+                                    <span class="stat-value"><%= currentSessions.length %></span>
+                                </div>
+                                <div class="stat-item">
+                                    <span class="stat-label">Assigned:</span>
+                                    <span class="stat-value"><%= currentSessions.filter(s => s.permanentInstructor).length %></span>
+                                </div>
+                                <div class="stat-item">
+                                    <span class="stat-label">Open Shifts:</span>
+                                    <span class="stat-value"><%= currentSessions.filter(s => !s.permanentInstructor).length %></span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                <% } else { %>
+                    <div class="card">
+                        <div class="card-body">
+                            <div class="empty-state">
+                                <div class="empty-state-icon">📅</div>
+                                <div class="empty-state-text">No active timetable</div>
+                                <p style="color: #6c757d; margin-top: 8px;">Create a new timetable template to get started</p>
+                                <a href="/admin/timetable/create" class="btn btn-primary" style="margin-top: 20px;">
+                                    Create First Template
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                <% } %>
+
+                <!-- All Templates -->
+                <div class="card">
+                    <div class="card-header">
+                        <h3 class="card-title">All Timetable Templates</h3>
+                        <p class="card-subtitle">Manage past, current, and future schedules</p>
+                    </div>
+                    <div class="card-body">
+                        <% if (templates.length === 0) { %>
+                            <div class="empty-state">
+                                <div class="empty-state-icon">📋</div>
+                                <div class="empty-state-text">No templates created yet</div>
+                            </div>
+                        <% } else { %>
+                            <div class="templates-list">
+                                <% templates.forEach(function(template) { %>
+                                    <div class="template-item">
+                                        <div class="template-info">
+                                            <div class="template-name">
+                                                <%= template.name %>
+                                                <span class="template-badge <%= template.status %>">
+                                                    <%= template.status %>
+                                                </span>
+                                            </div>
+                                            <div class="template-meta">
+                                                <span><%= template.type %></span>
+                                                <span>•</span>
+                                                <span><%= new Date(template.effectiveFrom).toLocaleDateString('en-GB') %> to <%= new Date(template.effectiveTo).toLocaleDateString('en-GB') %></span>
+                                                <span>•</span>
+                                                <span><%= template.sessionCount %> sessions</span>
+                                            </div>
+                                            <% if (template.createdBy) { %>
+                                                <div class="template-creator">
+                                                    Created by <%= template.createdBy.profile.firstName %> <%= template.createdBy.profile.lastName %>
+                                                </div>
+                                            <% } %>
+                                        </div>
+                                        <div class="template-actions">
+                                            <a href="/admin/timetable/<%= template._id %>" class="btn btn-sm btn-secondary">
+                                                View Details
+                                            </a>
+                                            <% if (template.status !== 'active') { %>
+                                                <form action="/admin/timetable/<%= template._id %>/activate" method="POST" style="display: inline;">
+                                                    <button type="submit" class="btn btn-sm btn-success">
+                                                        Activate
+                                                    </button>
+                                                </form>
+                                            <% } %>
+                                        </div>
+                                    </div>
+                                <% }); %>
+                            </div>
+                        <% } %>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script src="/js/admin.js"></script>
+    
+    <style>
+    /* Timetable-specific styles */
+    .timetable-grid {
+        display: grid;
+        grid-template-columns: repeat(7, 1fr);
+        gap: 16px;
+        margin-bottom: 24px;
+    }
+
+    .day-column {
+        background: #f8f9fa;
+        border-radius: 8px;
+        overflow: hidden;
+    }
+
+    .day-header {
+        background: linear-gradient(135deg, #28a745, #20c997);
+        color: white;
+        padding: 12px;
+        font-weight: 600;
+        font-size: 14px;
+        text-align: center;
+    }
+
+    .session-count {
+        font-weight: 400;
+        opacity: 0.9;
+    }
+
+    .sessions-list {
+        padding: 12px;
+        min-height: 200px;
+    }
+
+    .empty-day {
+        text-align: center;
+        padding: 20px;
+        color: #6c757d;
+        font-size: 14px;
+    }
+
+    .session-card {
+        background: white;
+        border-radius: 6px;
+        padding: 12px;
+        margin-bottom: 8px;
+        border-left: 3px solid #28a745;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+        transition: transform 0.2s ease;
+    }
+
+    .session-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+    }
+
+    .session-card.open {
+        border-left-color: #ffc107;
+    }
+
+    .session-time {
+        font-weight: 600;
+        color: #28a745;
+        font-size: 13px;
+        margin-bottom: 4px;
+    }
+
+    .session-name {
+        font-weight: 600;
+        color: #1a202c;
+        margin-bottom: 4px;
+        font-size: 14px;
+    }
+
+    .session-venue {
+        color: #6c757d;
+        font-size: 12px;
+        margin-bottom: 6px;
+    }
+
+    .session-instructor {
+        font-size: 12px;
+        color: #495057;
+        padding-top: 6px;
+        border-top: 1px solid #e2e8f0;
+    }
+
+    .session-instructor.unassigned {
+        color: #ffc107;
+        font-weight: 500;
+    }
+
+    .timetable-stats {
+        display: flex;
+        gap: 32px;
+        padding: 20px;
+        background: #f8f9fa;
+        border-radius: 8px;
+        justify-content: center;
+    }
+
+    .stat-item {
+        text-align: center;
+    }
+
+    .stat-label {
+        display: block;
+        color: #6c757d;
+        font-size: 14px;
+        margin-bottom: 4px;
+    }
+
+    .stat-value {
+        display: block;
+        font-size: 24px;
+        font-weight: 700;
+        color: #28a745;
+    }
+
+    .templates-list {
+        display: flex;
+        flex-direction: column;
+        gap: 16px;
+    }
+
+    .template-item {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 20px;
+        background: #f8f9fa;
+        border-radius: 8px;
+        border-left: 4px solid #28a745;
+    }
+
+    .template-item.draft {
+        border-left-color: #6c757d;
+    }
+
+    .template-item.archived {
+        border-left-color: #adb5bd;
+        opacity: 0.7;
+    }
+
+    .template-info {
+        flex: 1;
+    }
+
+    .template-name {
+        font-weight: 600;
+        font-size: 16px;
+        color: #1a202c;
+        margin-bottom: 6px;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+    }
+
+    .template-badge {
+        display: inline-block;
+        padding: 4px 12px;
+        border-radius: 12px;
+        font-size: 11px;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+
+    .template-badge.active {
+        background-color: #d4f6d9;
+        color: #0f5132;
+    }
+
+    .template-badge.draft {
+        background-color: #e2e8f0;
+        color: #495057;
+    }
+
+    .template-badge.archived {
+        background-color: #f8f9fa;
+        color: #6c757d;
+    }
+
+    .template-meta {
+        font-size: 14px;
+        color: #6c757d;
+        margin-bottom: 4px;
+    }
+
+    .template-creator {
+        font-size: 12px;
+        color: #adb5bd;
+    }
+
+    .template-actions {
+        display: flex;
+        gap: 8px;
+    }
+
+    /* Responsive timetable grid */
+    @media (max-width: 1400px) {
+        .timetable-grid {
+            grid-template-columns: repeat(4, 1fr);
+        }
+    }
+
+    @media (max-width: 1024px) {
+        .timetable-grid {
+            grid-template-columns: repeat(3, 1fr);
+        }
+    }
+
+    @media (max-width: 768px) {
+        .timetable-grid {
+            grid-template-columns: repeat(2, 1fr);
+        }
+        
+        .template-item {
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 12px;
+        }
+        
+        .template-actions {
+            width: 100%;
+        }
+    }
+    </style>
+</body>
+</html>

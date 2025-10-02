@@ -1,0 +1,698 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title><%= title %></title>
+    <link rel="stylesheet" href="/css/admin.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div class="admin-container">
+        <!-- Sidebar Navigation -->
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <h2>Southgate LC</h2>
+                <p>Admin Panel</p>
+            </div>
+            
+            <nav class="sidebar-nav">
+                <ul>
+                    <li>
+                        <a href="/admin/dashboard" class="nav-link">
+                            <span class="nav-icon">📊</span>
+                            <span class="nav-text">Dashboard</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="/admin/cover" class="nav-link">
+                            <span class="nav-icon">📋</span>
+                            <span class="nav-text">Your Cover</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="/admin/get-cover" class="nav-link active">
+                            <span class="nav-icon">➕</span>
+                            <span class="nav-text">Get Cover</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="/admin/instructors" class="nav-link">
+                            <span class="nav-icon">👥</span>
+                            <span class="nav-text">Instructors</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="/admin/timetable" class="nav-link">
+                            <span class="nav-icon">📅</span>
+                            <span class="nav-text">Timetable</span>
+                        </a>
+                    </li>
+                </ul>
+            </nav>
+            
+            <div class="sidebar-footer">
+                <div class="user-info">
+                    <div class="user-avatar">
+                        <%= user.profile.firstName.charAt(0) %><%= user.profile.lastName.charAt(0) %>
+                    </div>
+                    <div class="user-details">
+                        <div class="user-name"><%= user.profile.firstName %> <%= user.profile.lastName %></div>
+                        <div class="user-role">Administrator</div>
+                    </div>
+                </div>
+                <a href="/auth/logout" class="logout-btn">Sign Out</a>
+            </div>
+        </aside>
+
+        <!-- Main Content Area -->
+        <main class="main-content">
+            <!-- Top Header -->
+            <header class="content-header">
+                <div class="header-left">
+                    <h1 class="page-title">Get Cover</h1>
+                    <p class="page-subtitle">Request instructor cover for sessions</p>
+                </div>
+            </header>
+
+            <!-- Flash Messages -->
+            <div class="flash-messages">
+                <% if (error_msg && error_msg.length > 0) { %>
+                    <div class="alert alert-error">
+                        <span class="alert-icon">⚠️</span>
+                        <span class="alert-text"><%= error_msg %></span>
+                        <button class="alert-close" onclick="this.parentElement.style.display='none'">×</button>
+                    </div>
+                <% } %>
+
+                <% if (success_msg && success_msg.length > 0) { %>
+                    <div class="alert alert-success">
+                        <span class="alert-icon">✅</span>
+                        <span class="alert-text"><%= success_msg %></span>
+                        <button class="alert-close" onclick="this.parentElement.style.display='none'">×</button>
+                    </div>
+                <% } %>
+            </div>
+
+            <!-- Page Content -->
+            <div class="page-content">
+                <% if (!activeTimetable) { %>
+                    <div class="card">
+                        <div class="card-body">
+                            <div class="empty-state">
+                                <div class="empty-state-icon">📅</div>
+                                <div class="empty-state-text">No active timetable</div>
+                                <p style="color: #6c757d; margin-top: 8px;">You need an active timetable before requesting cover</p>
+                                <a href="/admin/timetable" class="btn btn-primary" style="margin-top: 20px;">
+                                    Go to Timetables
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                <% } else { %>
+                    <!-- Info Box -->
+                    <div class="info-box">
+                        <div class="info-icon">ℹ️</div>
+                        <div class="info-content">
+                            <strong>How it works:</strong> Click on any session below to request cover for a specific date. 
+                            Eligible instructors will be notified automatically via email.
+                        </div>
+                    </div>
+
+                    <!-- Weekly Calendar -->
+                    <div class="card">
+                        <div class="card-header">
+                            <h3 class="card-title">Weekly Schedule</h3>
+                            <p class="card-subtitle">Click a session to request cover</p>
+                        </div>
+                        <div class="card-body">
+                            <% if (sessions.length === 0) { %>
+                                <div class="empty-state">
+                                    <div class="empty-state-icon">📋</div>
+                                    <div class="empty-state-text">No sessions in active timetable</div>
+                                    <p style="color: #6c757d; margin-top: 8px;">Add sessions to the timetable first</p>
+                                    <a href="/admin/timetable/<%= activeTimetable._id %>" class="btn btn-primary" style="margin-top: 20px;">
+                                        Add Sessions
+                                    </a>
+                                </div>
+                            <% } else { %>
+                                <!-- Weekly Schedule Grid -->
+                                <div class="timetable-grid">
+                                    <% 
+                                    const days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
+                                    const dayNumbers = [1, 2, 3, 4, 5, 6, 0];
+                                    %>
+                                    
+                                    <% dayNumbers.forEach(function(dayNum, index) { 
+                                        const daySessions = sessions.filter(s => s.dayOfWeek === dayNum);
+                                    %>
+                                        <div class="day-column">
+                                            <div class="day-header">
+                                                <%= days[index] %>
+                                                <span class="session-count">(<%= daySessions.length %>)</span>
+                                            </div>
+                                            <div class="sessions-list">
+                                                <% if (daySessions.length === 0) { %>
+                                                    <div class="empty-day">No classes</div>
+                                                <% } else { %>
+                                                    <% daySessions.forEach(function(session) { %>
+                                                        <div class="session-card clickable <%= session.assignmentType %>" 
+                                                             onclick="openCoverModal('<%= session._id %>', '<%= session.className %>', '<%= session.startTime %>', '<%= session.endTime %>', '<%= session.venue %>', '<%= session.dayOfWeek %>', '<%= session.requiredQualifications.join(', ') %>', '<%= session.permanentInstructor ? session.permanentInstructor.profile.firstName + ' ' + session.permanentInstructor.profile.lastName : 'Open Shift' %>')">
+                                                            <div class="session-time">
+                                                                <%= session.startTime %> - <%= session.endTime %>
+                                                            </div>
+                                                            <div class="session-name"><%= session.className %></div>
+                                                            <div class="session-venue"><%= session.venue %></div>
+                                                            <% if (session.permanentInstructor) { %>
+                                                                <div class="session-instructor">
+                                                                    👤 <%= session.permanentInstructor.profile.firstName %> <%= session.permanentInstructor.profile.lastName %>
+                                                                </div>
+                                                            <% } else { %>
+                                                                <div class="session-instructor unassigned">
+                                                                    👤 Open Shift
+                                                                </div>
+                                                            <% } %>
+                                                            <div class="click-hint">Click to request cover</div>
+                                                        </div>
+                                                    <% }); %>
+                                                <% } %>
+                                            </div>
+                                        </div>
+                                    <% }); %>
+                                </div>
+                            <% } %>
+                        </div>
+                    </div>
+                <% } %>
+            </div>
+        </main>
+    </div>
+
+    <!-- Cover Request Modal -->
+    <div id="coverModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Request Cover</h3>
+                <button class="modal-close" onclick="closeCoverModal()">×</button>
+            </div>
+            <div class="modal-body">
+                <!-- Session Details Display -->
+                <div class="session-details-box">
+                    <h4>Session Details</h4>
+                    <div class="details-grid">
+                        <div class="detail-item">
+                            <span class="detail-label">Class:</span>
+                            <span class="detail-value" id="modalClassName"></span>
+                        </div>
+                        <div class="detail-item">
+                            <span class="detail-label">Time:</span>
+                            <span class="detail-value" id="modalTime"></span>
+                        </div>
+                        <div class="detail-item">
+                            <span class="detail-label">Venue:</span>
+                            <span class="detail-value" id="modalVenue"></span>
+                        </div>
+                        <div class="detail-item">
+                            <span class="detail-label">Day:</span>
+                            <span class="detail-value" id="modalDay"></span>
+                        </div>
+                        <div class="detail-item">
+                            <span class="detail-label">Instructor:</span>
+                            <span class="detail-value" id="modalInstructor"></span>
+                        </div>
+                        <div class="detail-item" id="qualificationsDetail" style="display: none;">
+                            <span class="detail-label">Required Qualifications:</span>
+                            <span class="detail-value" id="modalQualifications"></span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Cover Request Form -->
+                <form action="/admin/cover/create" method="POST" id="coverRequestForm">
+                    <input type="hidden" name="session" id="sessionId">
+                    
+                    <div class="form-group">
+                        <label for="coverDate" class="form-label">
+                            Date Needed
+                            <span class="required">*</span>
+                        </label>
+                        <input 
+                            type="date" 
+                            id="coverDate" 
+                            name="coverDate" 
+                            class="form-control"
+                            required
+                        >
+                        <small class="form-help">Select the specific date you need cover for this session</small>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="urgency" class="form-label">
+                            Urgency
+                            <span class="required">*</span>
+                        </label>
+                        <select id="urgency" name="urgency" class="form-control" required>
+                            <option value="normal">Normal (24-72 hours notice)</option>
+                            <option value="urgent">Urgent (Less than 24 hours)</option>
+                            <option value="advance_planned">Advance Planned (More than 72 hours)</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="reason" class="form-label">Reason (Optional)</label>
+                        <textarea 
+                            id="reason" 
+                            name="reason" 
+                            class="form-control" 
+                            rows="3"
+                            placeholder="e.g., Instructor illness, holiday, etc."
+                        ></textarea>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="paymentRate" class="form-label">Payment Rate (£)</label>
+                        <input 
+                            type="number" 
+                            id="paymentRate" 
+                            name="paymentRate" 
+                            class="form-control"
+                            placeholder="25.00"
+                            step="0.01"
+                            min="0"
+                        >
+                        <small class="form-help">Leave blank to use instructor's default rate</small>
+                    </div>
+
+                    <!-- Eligible Instructors Preview -->
+                    <div class="eligible-box">
+                        <div class="eligible-icon">👥</div>
+                        <div class="eligible-content">
+                            <strong>Eligible Instructors</strong>
+                            <p>This cover request will be sent to <span id="eligibleCount"><%= eligibleInstructors.length %></span> qualified instructor(s)</p>
+                        </div>
+                    </div>
+
+                    <div class="modal-actions">
+                        <button type="button" class="btn btn-secondary" onclick="closeCoverModal()">Cancel</button>
+                        <button type="submit" class="btn btn-primary">Create Cover Request</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script src="/js/admin.js"></script>
+    
+    <script>
+        const days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+        
+        function openCoverModal(sessionId, className, startTime, endTime, venue, dayOfWeek, qualifications, instructor) {
+            // Populate session details
+            document.getElementById('modalClassName').textContent = className;
+            document.getElementById('modalTime').textContent = startTime + ' - ' + endTime;
+            document.getElementById('modalVenue').textContent = venue;
+            document.getElementById('modalDay').textContent = days[parseInt(dayOfWeek)];
+            document.getElementById('modalInstructor').textContent = instructor;
+            
+            // Show qualifications if any
+            if (qualifications && qualifications.trim() !== '') {
+                document.getElementById('modalQualifications').textContent = qualifications;
+                document.getElementById('qualificationsDetail').style.display = 'block';
+            } else {
+                document.getElementById('qualificationsDetail').style.display = 'none';
+            }
+            
+            // Set hidden session ID
+            document.getElementById('sessionId').value = sessionId;
+            
+            // Set minimum date to today
+            const today = new Date().toISOString().split('T')[0];
+            document.getElementById('coverDate').min = today;
+            
+            // Show modal
+            document.getElementById('coverModal').style.display = 'flex';
+        }
+        
+        function closeCoverModal() {
+            document.getElementById('coverModal').style.display = 'none';
+            document.getElementById('coverRequestForm').reset();
+        }
+        
+        // Close modal when clicking outside
+        window.onclick = function(event) {
+            const modal = document.getElementById('coverModal');
+            if (event.target === modal) {
+                closeCoverModal();
+            }
+        }
+        
+        // Form validation
+        document.getElementById('coverRequestForm').addEventListener('submit', function(e) {
+            const coverDate = new Date(document.getElementById('coverDate').value);
+            const today = new Date();
+            today.setHours(0, 0, 0, 0);
+            
+            if (coverDate < today) {
+                e.preventDefault();
+                alert('Cannot request cover for past dates');
+                return false;
+            }
+        });
+    </script>
+
+    <style>
+    /* Get Cover specific styles */
+    .info-box {
+        display: flex;
+        padding: 16px;
+        background: #e7f6ec;
+        border-left: 4px solid #28a745;
+        border-radius: 8px;
+        margin-bottom: 24px;
+    }
+
+    .info-icon {
+        font-size: 20px;
+        margin-right: 12px;
+    }
+
+    .info-content {
+        font-size: 14px;
+        color: #155724;
+        line-height: 1.6;
+    }
+
+    .timetable-grid {
+        display: grid;
+        grid-template-columns: repeat(7, 1fr);
+        gap: 16px;
+    }
+
+    .day-column {
+        background: #f8f9fa;
+        border-radius: 8px;
+        overflow: hidden;
+    }
+
+    .day-header {
+        background: linear-gradient(135deg, #28a745, #20c997);
+        color: white;
+        padding: 12px;
+        font-weight: 600;
+        font-size: 14px;
+        text-align: center;
+    }
+
+    .session-count {
+        font-weight: 400;
+        opacity: 0.9;
+    }
+
+    .sessions-list {
+        padding: 12px;
+        min-height: 200px;
+    }
+
+    .empty-day {
+        text-align: center;
+        padding: 20px;
+        color: #6c757d;
+        font-size: 14px;
+    }
+
+    .session-card {
+        background: white;
+        border-radius: 6px;
+        padding: 12px;
+        margin-bottom: 8px;
+        border-left: 3px solid #28a745;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+        transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+
+    .session-card.clickable {
+        cursor: pointer;
+    }
+
+    .session-card.clickable:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(40, 167, 69, 0.2);
+    }
+
+    .session-card.open {
+        border-left-color: #ffc107;
+    }
+
+    .session-time {
+        font-weight: 600;
+        color: #28a745;
+        font-size: 13px;
+        margin-bottom: 4px;
+    }
+
+    .session-name {
+        font-weight: 600;
+        color: #1a202c;
+        margin-bottom: 4px;
+        font-size: 14px;
+    }
+
+    .session-venue {
+        color: #6c757d;
+        font-size: 12px;
+        margin-bottom: 6px;
+    }
+
+    .session-instructor {
+        font-size: 12px;
+        color: #495057;
+        padding-top: 6px;
+        border-top: 1px solid #e2e8f0;
+        margin-bottom: 6px;
+    }
+
+    .session-instructor.unassigned {
+        color: #ffc107;
+        font-weight: 500;
+    }
+
+    .click-hint {
+        font-size: 11px;
+        color: #28a745;
+        font-weight: 600;
+        text-align: center;
+        padding-top: 6px;
+        border-top: 1px dashed #e2e8f0;
+    }
+
+    /* Modal Styles */
+    .modal {
+        display: none;
+        position: fixed;
+        z-index: 2000;
+        left: 0;
+        top: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(0, 0, 0, 0.5);
+        align-items: center;
+        justify-content: center;
+    }
+
+    .modal-content {
+        background-color: white;
+        border-radius: 12px;
+        width: 90%;
+        max-width: 600px;
+        max-height: 90vh;
+        overflow-y: auto;
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+    }
+
+    .modal-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 24px;
+        border-bottom: 1px solid #e2e8f0;
+    }
+
+    .modal-header h3 {
+        margin: 0;
+        color: #1a202c;
+        font-size: 20px;
+    }
+
+    .modal-close {
+        background: none;
+        border: none;
+        font-size: 28px;
+        color: #6c757d;
+        cursor: pointer;
+        padding: 0;
+        width: 32px;
+        height: 32px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 4px;
+        transition: background-color 0.2s ease;
+    }
+
+    .modal-close:hover {
+        background-color: #f8f9fa;
+    }
+
+    .modal-body {
+        padding: 24px;
+    }
+
+    .session-details-box {
+        background: #f8f9fa;
+        border-radius: 8px;
+        padding: 20px;
+        margin-bottom: 24px;
+    }
+
+    .session-details-box h4 {
+        margin: 0 0 16px 0;
+        color: #1a202c;
+        font-size: 16px;
+    }
+
+    .details-grid {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 12px;
+    }
+
+    .detail-item {
+        display: flex;
+        flex-direction: column;
+    }
+
+    .detail-label {
+        font-size: 12px;
+        color: #6c757d;
+        margin-bottom: 4px;
+        font-weight: 600;
+    }
+
+    .detail-value {
+        font-size: 14px;
+        color: #1a202c;
+    }
+
+    .form-group {
+        margin-bottom: 20px;
+    }
+
+    .form-label {
+        display: block;
+        font-weight: 600;
+        color: #1a202c;
+        margin-bottom: 8px;
+        font-size: 14px;
+    }
+
+    .required {
+        color: #dc3545;
+    }
+
+    .form-control {
+        width: 100%;
+        padding: 12px 16px;
+        border: 1px solid #e2e8f0;
+        border-radius: 8px;
+        font-size: 14px;
+        color: #1a202c;
+        transition: border-color 0.2s ease;
+    }
+
+    .form-control:focus {
+        outline: none;
+        border-color: #28a745;
+        box-shadow: 0 0 0 3px rgba(40, 167, 69, 0.1);
+    }
+
+    textarea.form-control {
+        resize: vertical;
+        font-family: inherit;
+    }
+
+    .form-help {
+        display: block;
+        margin-top: 6px;
+        font-size: 12px;
+        color: #6c757d;
+    }
+
+    .eligible-box {
+        display: flex;
+        padding: 16px;
+        background: #e7f6ec;
+        border-radius: 8px;
+        margin-bottom: 24px;
+    }
+
+    .eligible-icon {
+        font-size: 24px;
+        margin-right: 12px;
+    }
+
+    .eligible-content {
+        flex: 1;
+    }
+
+    .eligible-content strong {
+        display: block;
+        color: #155724;
+        margin-bottom: 4px;
+    }
+
+    .eligible-content p {
+        margin: 0;
+        font-size: 14px;
+        color: #155724;
+    }
+
+    .modal-actions {
+        display: flex;
+        gap: 12px;
+        justify-content: flex-end;
+        padding-top: 20px;
+        border-top: 1px solid #e2e8f0;
+    }
+
+    /* Responsive */
+    @media (max-width: 1400px) {
+        .timetable-grid {
+            grid-template-columns: repeat(4, 1fr);
+        }
+    }
+
+    @media (max-width: 1024px) {
+        .timetable-grid {
+            grid-template-columns: repeat(3, 1fr);
+        }
+        
+        .details-grid {
+            grid-template-columns: 1fr;
+        }
+    }
+
+    @media (max-width: 768px) {
+        .timetable-grid {
+            grid-template-columns: repeat(2, 1fr);
+        }
+        
+        .modal-content {
+            width: 95%;
+            max-height: 95vh;
+        }
+    }
+    </style>
+</body>
+</html>

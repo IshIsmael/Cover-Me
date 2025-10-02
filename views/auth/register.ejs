@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title><%= title %></title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 500px;
+            margin: 50px auto;
+            padding: 20px;
+        }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+        input[type="email"], input[type="password"], input[type="text"], input[type="tel"] {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            box-sizing: border-box;
+        }
+        button {
+            background-color: #28a745;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            width: 100%;
+        }
+        button:hover {
+            background-color: #218838;
+        }
+        .error {
+            background-color: #f8d7da;
+            color: #721c24;
+            padding: 10px;
+            border-radius: 4px;
+            margin-bottom: 15px;
+        }
+        .success {
+            background-color: #d4edda;
+            color: #155724;
+            padding: 10px;
+            border-radius: 4px;
+            margin-bottom: 15px;
+        }
+        .login-link {
+            text-align: center;
+            margin-top: 20px;
+        }
+        .section-title {
+            font-size: 18px;
+            margin-top: 25px;
+            margin-bottom: 15px;
+            color: #333;
+            border-bottom: 1px solid #ddd;
+            padding-bottom: 5px;
+        }
+        .optional {
+            color: #666;
+            font-size: 12px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Instructor Registration</h1>
+    <p>Southgate Leisure Centre - Join our instructor team</p>
+
+    <!-- Flash Messages -->
+    <% if (error_msg && error_msg.length > 0) { %>
+        <div class="error">
+            <%= error_msg %>
+        </div>
+    <% } %>
+
+    <% if (success_msg && success_msg.length > 0) { %>
+        <div class="success">
+            <%= success_msg %>
+        </div>
+    <% } %>
+
+    <% if (errors && errors.length > 0) { %>
+        <div class="error">
+            <% errors.forEach(function(error) { %>
+                <p><%= error.msg %></p>
+            <% }); %>
+        </div>
+    <% } %>
+
+    <!-- Registration Form -->
+    <form action="/auth/register" method="POST">
+        <div class="section-title">Account Information</div>
+        
+        <div class="form-group">
+            <label for="email">Email Address:</label>
+            <input type="email" id="email" name="email" required>
+        </div>
+
+        <div class="form-group">
+            <label for="password">Password:</label>
+            <input type="password" id="password" name="password" required minlength="8">
+            <small>Minimum 8 characters</small>
+        </div>
+
+        <div class="section-title">Personal Information</div>
+
+        <div class="form-group">
+            <label for="firstName">First Name:</label>
+            <input type="text" id="firstName" name="firstName" required>
+        </div>
+
+        <div class="form-group">
+            <label for="lastName">Last Name:</label>
+            <input type="text" id="lastName" name="lastName" required>
+        </div>
+
+        <div class="form-group">
+            <label for="phone">Phone Number:</label>
+            <input type="tel" id="phone" name="phone">
+            <small class="optional">(Optional)</small>
+        </div>
+
+        <div class="section-title">Emergency Contact <span class="optional">(Optional)</span></div>
+
+        <div class="form-group">
+            <label for="emergencyContactName">Emergency Contact Name:</label>
+            <input type="text" id="emergencyContactName" name="emergencyContactName">
+        </div>
+
+        <div class="form-group">
+            <label for="emergencyContactPhone">Emergency Contact Phone:</label>
+            <input type="tel" id="emergencyContactPhone" name="emergencyContactPhone">
+        </div>
+
+        <button type="submit">Register</button>
+    </form>
+
+    <div class="login-link">
+        <p>Already have an account? <a href="/auth/login">Login here</a></p>
+    </div>
+</body>
+</html>

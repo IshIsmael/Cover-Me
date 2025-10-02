@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title><%= title %></title>
+    <link rel="stylesheet" href="/css/admin.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div class="admin-container">
+        <!-- Sidebar Navigation -->
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <h2>Southgate LC</h2>
+                <p>Admin Panel</p>
+            </div>
+            
+            <nav class="sidebar-nav">
+                <ul>
+                    <li>
+                        <a href="/admin/dashboard" class="nav-link <%= currentPage === 'dashboard' ? 'active' : '' %>">
+                            <span class="nav-icon">📊</span>
+                            <span class="nav-text">Dashboard</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="/admin/cover" class="nav-link <%= currentPage === 'cover' ? 'active' : '' %>">
+                            <span class="nav-icon">📋</span>
+                            <span class="nav-text">Your Cover</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="/admin/get-cover" class="nav-link <%= currentPage === 'get-cover' ? 'active' : '' %>">
+                            <span class="nav-icon">➕</span>
+                            <span class="nav-text">Get Cover</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="/admin/instructors" class="nav-link <%= currentPage === 'instructors' ? 'active' : '' %>">
+                            <span class="nav-icon">👥</span>
+                            <span class="nav-text">Instructors</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="/admin/timetable" class="nav-link <%= currentPage === 'timetable' ? 'active' : '' %>">
+                            <span class="nav-icon">📅</span>
+                            <span class="nav-text">Timetable</span>
+                        </a>
+                    </li>
+                </ul>
+            </nav>
+            
+            <div class="sidebar-footer">
+                <div class="user-info">
+                    <div class="user-avatar">
+                        <%= user.profile.firstName.charAt(0) %><%= user.profile.lastName.charAt(0) %>
+                    </div>
+                    <div class="user-details">
+                        <div class="user-name"><%= user.profile.firstName %> <%= user.profile.lastName %></div>
+                        <div class="user-role">Administrator</div>
+                    </div>
+                </div>
+                <a href="/auth/logout" class="logout-btn">Sign Out</a>
+            </div>
+        </aside>
+
+        <!-- Main Content Area -->
+        <main class="main-content">
+            <!-- Top Header -->
+            <header class="content-header">
+                <div class="header-left">
+                    <h1 class="page-title"><%= pageTitle || 'Dashboard' %></h1>
+                    <% if (pageSubtitle) { %>
+                        <p class="page-subtitle"><%= pageSubtitle %></p>
+                    <% } %>
+                </div>
+                <div class="header-right">
+                    <div class="header-actions">
+                        <% if (headerActions) { %>
+                            <%- headerActions %>
+                        <% } %>
+                    </div>
+                </div>
+            </header>
+
+            <!-- Flash Messages -->
+            <div class="flash-messages">
+                <% if (error_msg && error_msg.length > 0) { %>
+                    <div class="alert alert-error">
+                        <span class="alert-icon">⚠️</span>
+                        <span class="alert-text"><%= error_msg %></span>
+                        <button class="alert-close" onclick="this.parentElement.style.display='none'">×</button>
+                    </div>
+                <% } %>
+
+                <% if (success_msg && success_msg.length > 0) { %>
+                    <div class="alert alert-success">
+                        <span class="alert-icon">✅</span>
+                        <span class="alert-text"><%= success_msg %></span>
+                        <button class="alert-close" onclick="this.parentElement.style.display='none'">×</button>
+                    </div>
+                <% } %>
+
+                <% if (errors && errors.length > 0) { %>
+                    <div class="alert alert-error">
+                        <span class="alert-icon">⚠️</span>
+                        <div class="alert-text">
+                            <% errors.forEach(function(error) { %>
+                                <div><%= error.msg %></div>
+                            <% }); %>
+                        </div>
+                        <button class="alert-close" onclick="this.parentElement.style.display='none'">×</button>
+                    </div>
+                <% } %>
+            </div>
+
+            <!-- Page Content -->
+            <div class="page-content">
+                <%- body %>
+            </div>
+        </main>
+    </div>
+
+    <script src="/js/admin.js"></script>
+</body>
+</html>

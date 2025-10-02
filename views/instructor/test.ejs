@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title><%= title %></title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 50px auto;
+            padding: 20px;
+            background-color: #f8f9fa;
+        }
+        .container {
+            background-color: white;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+            padding-bottom: 20px;
+            border-bottom: 1px solid #dee2e6;
+        }
+        .header h1 {
+            color: #28a745;
+            margin-bottom: 10px;
+        }
+        .header p {
+            color: #666;
+        }
+        .success {
+            background-color: #d4edda;
+            color: #155724;
+            padding: 15px;
+            border-radius: 4px;
+            margin-bottom: 20px;
+            border: 1px solid #c3e6cb;
+        }
+        .user-info {
+            background-color: #f8f9fa;
+            padding: 20px;
+            border-radius: 4px;
+            margin-bottom: 20px;
+        }
+        .user-info h3 {
+            margin-bottom: 15px;
+            color: #333;
+        }
+        .user-info p {
+            margin-bottom: 8px;
+            color: #666;
+        }
+        .user-info strong {
+            color: #333;
+        }
+        .actions {
+            text-align: center;
+            margin-top: 30px;
+        }
+        .btn {
+            display: inline-block;
+            padding: 12px 24px;
+            margin: 0 10px;
+            border: none;
+            border-radius: 4px;
+            text-decoration: none;
+            font-weight: 500;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+        .btn-primary {
+            background-color: #007bff;
+            color: white;
+        }
+        .btn-primary:hover {
+            background-color: #0056b3;
+        }
+        .btn-danger {
+            background-color: #dc3545;
+            color: white;
+        }
+        .btn-danger:hover {
+            background-color: #c82333;
+        }
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-top: 20px;
+        }
+        .stat-card {
+            background-color: white;
+            border: 1px solid #dee2e6;
+            padding: 15px;
+            border-radius: 4px;
+            text-align: center;
+        }
+        .stat-card h4 {
+            color: #007bff;
+            margin-bottom: 5px;
+        }
+        .stat-card p {
+            color: #666;
+            font-size: 14px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>✅ Login Successful!</h1>
+            <p>Welcome to the Southgate Leisure Centre Instructor Portal</p>
+        </div>
+
+        <div class="success">
+            <strong>Authentication Test Passed!</strong> You have successfully registered and been approved as an instructor.
+        </div>
+
+        <div class="user-info">
+            <h3>Your Account Details</h3>
+            <p><strong>Name:</strong> <%= user.profile.firstName %> <%= user.profile.lastName %></p>
+            <p><strong>Email:</strong> <%= user.email %></p>
+            <p><strong>Role:</strong> <%= user.role %></p>
+            <p><strong>Status:</strong> <%= user.status %></p>
+            <% if (user.profile.phone) { %>
+                <p><strong>Phone:</strong> <%= user.profile.phone %></p>
+            <% } %>
+            <% if (user.approvedAt) { %>
+                <p><strong>Approved On:</strong> <%= new Date(user.approvedAt).toLocaleDateString('en-GB') %></p>
+            <% } %>
+        </div>
+
+        <% if (user.instructorData) { %>
+            <div class="user-info">
+                <h3>Instructor Statistics</h3>
+                <div class="stats">
+                    <div class="stat-card">
+                        <h4><%= user.instructorData.stats.totalHoursWorked %></h4>
+                        <p>Total Hours Worked</p>
+                    </div>
+                    <div class="stat-card">
+                        <h4><%= user.instructorData.stats.sessionsThisMonth %></h4>
+                        <p>Sessions This Month</p>
+                    </div>
+                    <div class="stat-card">
+                        <h4><%= user.instructorData.stats.coversAcceptedThisMonth %></h4>
+                        <p>Covers This Month</p>
+                    </div>
+                    <div class="stat-card">
+                        <h4><%= user.instructorData.stats.reliabilityScore %>/5</h4>
+                        <p>Reliability Score</p>
+                    </div>
+                </div>
+                
+                <% if (user.instructorData.qualifications && user.instructorData.qualifications.length > 0) { %>
+                    <p style="margin-top: 15px;"><strong>Qualifications:</strong> <%= user.instructorData.qualifications.join(', ') %></p>
+                <% } %>
+            </div>
+        <% } %>
+
+        <div class="actions">
+            <a href="/admin/dashboard" class="btn btn-primary">Go to Admin (if you're also admin)</a>
+            <a href="/auth/logout" class="btn btn-danger">Logout</a>
+        </div>
+
+        <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #dee2e6; text-align: center; color: #666;">
+            <p><strong>Testing Complete!</strong></p>
+            <p>This confirms that registration → admin approval → instructor login flow works correctly.</p>
+        </div>
+    </div>
+</body>
+</html>
