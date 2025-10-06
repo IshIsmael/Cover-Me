@@ -1,0 +1,62 @@
+<div class="document-card status-<%= doc.status %> <%= doc.isExpired ? 'expired' : '' %> <%= doc.isExpiringSoon ? 'expiring-soon' : '' %>">
+    <div class="doc-header">
+        <div class="doc-type">
+            <span class="doc-icon">📄</span>
+            <span class="doc-type-name"><%= doc.documentType.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase()) %></span>
+        </div>
+        <div class="doc-status-badge status-<%= doc.status %>">
+            <% if (doc.isExpired) { %>
+                Expired
+            <% } else if (doc.status === 'pending') { %>
+                Pending
+            <% } else if (doc.status === 'approved') { %>
+                Approved
+            <% } else if (doc.status === 'rejected') { %>
+                Rejected
+            <% } %>
+        </div>
+    </div>
+
+    <div class="doc-body">
+        <div class="doc-details">
+            <div class="doc-detail-row">
+                <span class="doc-detail-label">Uploaded:</span>
+                <span class="doc-detail-value"><%= new Date(doc.uploadedAt).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' }) %></span>
+            </div>
+            
+            <% if (doc.expiryDate) { %>
+                <div class="doc-detail-row">
+                    <span class="doc-detail-label">Expires:</span>
+                    <span class="doc-detail-value <%= doc.isExpired ? 'expired' : '' %> <%= doc.isExpiringSoon ? 'expiring' : '' %>">
+                        <%= new Date(doc.expiryDate).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' }) %>
+                        <% if (doc.isExpired) { %>
+                            (Expired)
+                        <% } else if (doc.isExpiringSoon) { %>
+                            (Expires soon!)
+                        <% } %>
+                    </span>
+                </div>
+            <% } %>
+
+            <% if (doc.notes) { %>
+                <div class="doc-detail-row">
+                    <span class="doc-detail-label">Notes:</span>
+                    <span class="doc-detail-value"><%= doc.notes %></span>
+                </div>
+            <% } %>
+
+            <% if (doc.status === 'rejected' && doc.rejectionReason) { %>
+                <div class="doc-rejection-reason">
+                    <strong>Rejection Reason:</strong>
+                    <p><%= doc.rejectionReason %></p>
+                </div>
+            <% } %>
+        </div>
+
+        <div class="doc-actions">
+            <a href="/uploads/documents/<%= doc.filePath %>" target="_blank" class="btn-view">
+                View Document
+            </a>
+        </div>
+    </div>
+</div>

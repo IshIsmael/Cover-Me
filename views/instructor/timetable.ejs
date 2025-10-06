@@ -1,0 +1,285 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title><%= title %></title>
+    <link rel="stylesheet" href="/css/instructor.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <!-- Mobile Header -->
+    <header class="mobile-header">
+        <div class="header-content">
+            <div class="header-title">
+                <h1>My Timetable</h1>
+                <p><%= user.profile.firstName %> <%= user.profile.lastName %></p>
+            </div>
+            <a href="/auth/logout" class="mobile-logout">Sign Out</a>
+        </div>
+    </header>
+
+    <!-- Week Selector (Sticky) -->
+    <div class="week-selector">
+        <div class="week-nav">
+            <button class="week-btn" onclick="changeWeek(-1)" <%= canGoPrevious ? '' : 'disabled' %>>←</button>
+            <div class="week-display">
+                <div class="week-label">
+                    Week of <%= startOfWeek.toLocaleDateString('en-GB', { day: 'numeric', month: 'short' }) %> - <%= endOfWeek.toLocaleDateString('en-GB', { day: 'numeric', month: 'short' }) %>
+                </div>
+                <% if (weekOffset !== 0) { %>
+                    <button class="current-week-btn" onclick="goToCurrentWeek()">Current Week</button>
+                <% } %>
+            </div>
+            <button class="week-btn" onclick="changeWeek(1)" <%= canGoNext ? '' : 'disabled' %>>→</button>
+        </div>
+    </div>
+
+    <!-- Flash Messages -->
+    <% if (error_msg && error_msg.length > 0) { %>
+        <div class="flash-message error">
+            <span>⚠️ <%= error_msg %></span>
+            <button onclick="this.parentElement.style.display='none'">×</button>
+        </div>
+    <% } %>
+
+    <% if (success_msg && success_msg.length > 0) { %>
+        <div class="flash-message success">
+            <span>✅ <%= success_msg %></span>
+            <button onclick="this.parentElement.style.display='none'">×</button>
+        </div>
+    <% } %>
+
+    <!-- Main Content -->
+    <main class="main-content">
+        <% if (mySessions.length === 0) { %>
+            <!-- Empty State -->
+            <div class="empty-state">
+                <div class="empty-icon">📅</div>
+                <h2>No Assigned Sessions</h2>
+                <p>You don't have any permanent sessions assigned to you yet.</p>
+                <a href="/instructor/open-cover" class="btn-primary">Browse Open Cover</a>
+            </div>
+        <% } else { %>
+            <!-- Today's Sessions -->
+            <% if (todaySessions.length > 0) { %>
+                <section class="sessions-section today">
+                    <h2 class="section-title">🌟 TODAY - <%= today.toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'short' }) %></h2>
+                    <div class="sessions-list">
+                        <% todaySessions.forEach(function(sessionData) { 
+                            const session = sessionData.session;
+                            const canRequestCover = sessionData.canRequestCover;
+                            const coverRequest = sessionData.coverRequest;
+                            const isPast = sessionData.isPast;
+                        %>
+                            <div class="session-card <%= isPast ? 'past' : '' %> <%= coverRequest ? 'has-cover' : '' %>">
+                                <div class="session-time">
+                                    🕐 <%= session.startTime %> - <%= session.endTime %>
+                                    <% if (sessionData.timeUntil) { %>
+                                        <span class="time-badge"><%= sessionData.timeUntil %></span>
+                                    <% } %>
+                                </div>
+                                <div class="session-name"><%= session.className %></div>
+                                <div class="session-venue">📍 <%= session.venue %></div>
+                                
+                                <% if (isPast) { %>
+                                    <div class="session-status completed">✓ Completed</div>
+                                <% } else if (coverRequest) { %>
+                                    <div class="session-status cover-requested">
+                                        ⏳ Cover Requested
+                                        <span class="status-detail"><%= coverRequest.status %></span>
+                                    </div>
+                                <% } else if (canRequestCover) { %>
+                                    <div class="session-status ready">✓ All Set</div>
+                                    <button class="btn-request-cover" onclick="openCoverModal('<%= session._id %>', '<%= session.className %>', '<%= session.startTime %>', '<%= session.endTime %>', '<%= session.venue %>', '<%= sessionData.dateString %>')">
+                                        Request Cover
+                                    </button>
+                                <% } else { %>
+                                    <div class="session-status locked">🔒 Too late to request cover</div>
+                                <% } %>
+                            </div>
+                        <% }); %>
+                    </div>
+                </section>
+            <% } %>
+
+            <!-- This Week's Sessions -->
+            <% if (upcomingSessions.length > 0) { %>
+                <section class="sessions-section upcoming">
+                    <h2 class="section-title">📅 THIS WEEK</h2>
+                    
+                    <% 
+                    // Group by date
+                    const sessionsByDate = {};
+                    upcomingSessions.forEach(function(sessionData) {
+                        const dateKey = sessionData.dateString;
+                        if (!sessionsByDate[dateKey]) {
+                            sessionsByDate[dateKey] = [];
+                        }
+                        sessionsByDate[dateKey].push(sessionData);
+                    });
+                    
+                    Object.keys(sessionsByDate).forEach(function(dateKey) {
+                        const sessions = sessionsByDate[dateKey];
+                        const firstSession = sessions[0];
+                    %>
+                        <div class="day-group">
+                            <h3 class="day-header"><%= firstSession.dayName %></h3>
+                            <div class="sessions-list">
+                                <% sessions.forEach(function(sessionData) {
+                                    const session = sessionData.session;
+                                    const canRequestCover = sessionData.canRequestCover;
+                                    const coverRequest = sessionData.coverRequest;
+                                %>
+                                    <div class="session-card <%= coverRequest ? 'has-cover' : '' %>">
+                                        <div class="session-time">🕐 <%= session.startTime %> - <%= session.endTime %></div>
+                                        <div class="session-name"><%= session.className %></div>
+                                        <div class="session-venue">📍 <%= session.venue %></div>
+                                        
+                                        <% if (coverRequest) { %>
+                                            <div class="session-status cover-requested">
+                                                ⏳ Cover Requested
+                                                <span class="status-detail"><%= coverRequest.status %></span>
+                                            </div>
+                                        <% } else { %>
+                                            <button class="btn-request-cover" onclick="openCoverModal('<%= session._id %>', '<%= session.className %>', '<%= session.startTime %>', '<%= session.endTime %>', '<%= session.venue %>', '<%= sessionData.dateString %>')">
+                                                Request Cover
+                                            </button>
+                                        <% } %>
+                                    </div>
+                                <% }); %>
+                            </div>
+                        </div>
+                    <% }); %>
+                </section>
+            <% } %>
+
+            <!-- No Sessions This Week -->
+            <% if (todaySessions.length === 0 && upcomingSessions.length === 0) { %>
+                <div class="empty-week">
+                    <div class="empty-icon">📭</div>
+                    <h3>No sessions this week</h3>
+                    <p>Navigate to other weeks to see your schedule</p>
+                </div>
+            <% } %>
+        <% } %>
+    </main>
+
+    <!-- Bottom Navigation -->
+    <nav class="bottom-nav">
+        <a href="/instructor/timetable" class="nav-item active">
+            <span class="nav-icon">📅</span>
+            <span class="nav-label">Timetable</span>
+        </a>
+        <a href="/instructor/open-cover" class="nav-item">
+            <span class="nav-icon">📋</span>
+            <span class="nav-label">Open Cover</span>
+        </a>
+        <a href="/instructor/stats" class="nav-item">
+            <span class="nav-icon">📊</span>
+            <span class="nav-label">Stats</span>
+        </a>
+        <a href="/instructor/documents" class="nav-item">
+            <span class="nav-icon">📄</span>
+            <span class="nav-label">Documents</span>
+        </a>
+    </nav>
+
+    <!-- Cover Request Modal -->
+    <div id="coverModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Request Cover</h3>
+                <button class="modal-close" onclick="closeCoverModal()">×</button>
+            </div>
+            <div class="modal-body">
+                <div class="session-preview">
+                    <h4 id="modalClassName"></h4>
+                    <p id="modalTime"></p>
+                    <p id="modalVenue"></p>
+                    <p id="modalDate"></p>
+                </div>
+
+                <form action="/instructor/cover/request" method="POST" id="coverRequestForm">
+                    <input type="hidden" name="session" id="sessionId">
+                    <input type="hidden" name="coverDate" id="coverDate">
+                    
+                    <div class="form-group">
+                        <label for="reason">Reason (Optional)</label>
+                        <textarea 
+                            id="reason" 
+                            name="reason" 
+                            rows="4"
+                            placeholder="e.g., Illness, holiday, personal emergency..."
+                        ></textarea>
+                    </div>
+
+                    <div class="modal-actions">
+                        <button type="button" class="btn-secondary" onclick="closeCoverModal()">Cancel</button>
+                        <button type="submit" class="btn-primary">Submit Request</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let currentWeekOffset = <%= weekOffset %>;
+
+        function openCoverModal(sessionId, className, startTime, endTime, venue, dateString) {
+            document.getElementById('modalClassName').textContent = className;
+            document.getElementById('modalTime').textContent = startTime + ' - ' + endTime;
+            document.getElementById('modalVenue').textContent = '📍 ' + venue;
+            document.getElementById('modalDate').textContent = dateString;
+            document.getElementById('sessionId').value = sessionId;
+            
+            // Extract date and convert to YYYY-MM-DD format
+            const dateParts = dateString.split(' ');
+            const day = dateParts[1];
+            const monthMap = {
+                'Jan': '01', 'Feb': '02', 'Mar': '03', 'Apr': '04', 
+                'May': '05', 'Jun': '06', 'Jul': '07', 'Aug': '08',
+                'Sep': '09', 'Oct': '10', 'Nov': '11', 'Dec': '12'
+            };
+            const month = monthMap[dateParts[2]];
+            const year = dateParts[3];
+            const formattedDate = year + '-' + month + '-' + day.padStart(2, '0');
+            
+            document.getElementById('coverDate').value = formattedDate;
+            document.getElementById('coverModal').style.display = 'flex';
+        }
+
+        function closeCoverModal() {
+            document.getElementById('coverModal').style.display = 'none';
+            document.getElementById('coverRequestForm').reset();
+        }
+
+        function changeWeek(offset) {
+            currentWeekOffset += offset;
+            window.location.href = '/instructor/timetable?weekOffset=' + currentWeekOffset;
+        }
+
+        function goToCurrentWeek() {
+            window.location.href = '/instructor/timetable';
+        }
+
+        // Close modal on outside click
+        window.onclick = function(event) {
+            const modal = document.getElementById('coverModal');
+            if (event.target === modal) {
+                closeCoverModal();
+            }
+        }
+
+        // Auto-hide flash messages
+        setTimeout(() => {
+            document.querySelectorAll('.flash-message').forEach(msg => {
+                msg.style.opacity = '0';
+                setTimeout(() => msg.style.display = 'none', 300);
+            });
+        }, 5000);
+    </script>
+</body>
+</html>

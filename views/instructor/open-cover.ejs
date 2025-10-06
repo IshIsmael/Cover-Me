@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title><%= title %></title>
+    <link rel="stylesheet" href="/css/instructor.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <!-- Mobile Header -->
+    <header class="mobile-header">
+        <div class="header-content">
+            <div class="header-title">
+                <h1>Open Cover</h1>
+                <p>Pick up extra shifts</p>
+            </div>
+            <a href="/auth/logout" class="mobile-logout">Sign Out</a>
+        </div>
+    </header>
+
+    <!-- Flash Messages -->
+    <% if (error_msg && error_msg.length > 0) { %>
+        <div class="flash-message error">
+            <span>⚠️ <%= error_msg %></span>
+            <button onclick="this.parentElement.style.display='none'">×</button>
+        </div>
+    <% } %>
+
+    <% if (success_msg && success_msg.length > 0) { %>
+        <div class="flash-message success">
+            <span>✅ <%= success_msg %></span>
+            <button onclick="this.parentElement.style.display='none'">×</button>
+        </div>
+    <% } %>
+
+    <!-- Main Content -->
+    <main class="main-content">
+        <!-- Stats Summary -->
+        <div class="cover-stats">
+            <div class="stat-item">
+                <div class="stat-number"><%= openRequests.length %></div>
+                <div class="stat-label">Available</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-number"><%= acceptedRequests.length %></div>
+                <div class="stat-label">Accepted</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-number"><%= urgentCount %></div>
+                <div class="stat-label">Urgent</div>
+            </div>
+        </div>
+
+        <!-- Accepted Requests (Awaiting Confirmation) -->
+        <% if (acceptedRequests.length > 0) { %>
+            <section class="cover-section">
+                <h2 class="section-title">⏳ Awaiting Confirmation</h2>
+                <p class="section-subtitle">You've accepted these - waiting for admin to confirm</p>
+                
+                <div class="cover-list">
+                    <% acceptedRequests.forEach(function(request) { %>
+                        <div class="cover-card accepted">
+                            <div class="cover-header">
+                                <div class="cover-urgency <%= request.urgency %>">
+                                    <%= request.urgency.replace('_', ' ') %>
+                                </div>
+                                <div class="cover-date">
+                                    <%= new Date(request.coverDate).toLocaleDateString('en-GB', { weekday: 'short', day: 'numeric', month: 'short' }) %>
+                                </div>
+                            </div>
+                            
+                            <div class="cover-body">
+                                <h3 class="cover-title"><%= request.session.className %></h3>
+                                <div class="cover-details">
+                                    <div class="detail-row">
+                                        <span class="detail-icon">🕐</span>
+                                        <span><%= request.session.startTime %> - <%= request.session.endTime %></span>
+                                    </div>
+                                    <div class="detail-row">
+                                        <span class="detail-icon">📍</span>
+                                        <span><%= request.session.venue %></span>
+                                    </div>
+                                    <% if (request.paymentRate) { %>
+                                        <div class="detail-row">
+                                            <span class="detail-icon">💰</span>
+                                            <span>£<%= request.paymentRate.toFixed(2) %>/hour</span>
+                                        </div>
+                                    <% } %>
+                                </div>
+                            </div>
+                            
+                            <div class="cover-status-badge accepted">
+                                <span>✓ Accepted - Awaiting Confirmation</span>
+                            </div>
+                        </div>
+                    <% }); %>
+                </div>
+            </section>
+        <% } %>
+
+        <!-- Open Cover Requests -->
+        <section class="cover-section">
+            <h2 class="section-title">📋 Available Cover</h2>
+            <p class="section-subtitle">Accept shifts that match your qualifications</p>
+            
+            <% if (openRequests.length === 0) { %>
+                <div class="empty-state">
+                    <div class="empty-icon">📭</div>
+                    <h3>No cover opportunities</h3>
+                    <p>Check back later for new requests</p>
+                </div>
+            <% } else { %>
+                <div class="cover-list">
+                    <% openRequests.forEach(function(request) { 
+                        const isPast = new Date(request.sessionDateTime) < new Date();
+                    %>
+                        <div class="cover-card <%= request.urgency %> <%= isPast ? 'past' : '' %>">
+                            <div class="cover-header">
+                                <div class="cover-urgency <%= request.urgency %>">
+                                    <%= request.urgency.replace('_', ' ') %>
+                                </div>
+                                <div class="cover-date">
+                                    <%= new Date(request.coverDate).toLocaleDateString('en-GB', { weekday: 'short', day: 'numeric', month: 'short' }) %>
+                                </div>
+                            </div>
+                            
+                            <div class="cover-body">
+                                <h3 class="cover-title"><%= request.session.className %></h3>
+                                <div class="cover-details">
+                                    <div class="detail-row">
+                                        <span class="detail-icon">🕐</span>
+                                        <span><%= request.session.startTime %> - <%= request.session.endTime %></span>
+                                    </div>
+                                    <div class="detail-row">
+                                        <span class="detail-icon">📍</span>
+                                        <span><%= request.session.venue %></span>
+                                    </div>
+                                    <% if (request.requestedFor) { %>
+                                        <div class="detail-row">
+                                            <span class="detail-icon">👤</span>
+                                            <span>Covering for <%= request.requestedFor.profile.firstName %> <%= request.requestedFor.profile.lastName %></span>
+                                        </div>
+                                    <% } %>
+                                    <% if (request.paymentRate) { %>
+                                        <div class="detail-row">
+                                            <span class="detail-icon">💰</span>
+                                            <span>£<%= request.paymentRate.toFixed(2) %>/hour</span>
+                                        </div>
+                                    <% } %>
+                                    <% if (request.reason) { %>
+                                        <div class="detail-row">
+                                            <span class="detail-icon">💬</span>
+                                            <span><%= request.reason %></span>
+                                        </div>
+                                    <% } %>
+                                </div>
+                            </div>
+                            
+                            <% if (isPast) { %>
+                                <div class="cover-status-badge expired">
+                                    <span>Expired</span>
+                                </div>
+                            <% } else { %>
+                                <form action="/instructor/cover/accept/<%= request._id %>" method="POST">
+                                    <button type="submit" class="btn-accept" onclick="return confirm('Accept this cover request?')">
+                                        Accept This Shift
+                                    </button>
+                                </form>
+                            <% } %>
+                        </div>
+                    <% }); %>
+                </div>
+            <% } %>
+        </section>
+    </main>
+
+    <!-- Bottom Navigation -->
+    <nav class="bottom-nav">
+        <a href="/instructor/timetable" class="nav-item">
+            <span class="nav-icon">📅</span>
+            <span class="nav-label">Timetable</span>
+        </a>
+        <a href="/instructor/open-cover" class="nav-item active">
+            <span class="nav-icon">📋</span>
+            <span class="nav-label">Open Cover</span>
+        </a>
+        <a href="/instructor/stats" class="nav-item">
+            <span class="nav-icon">📊</span>
+            <span class="nav-label">Stats</span>
+        </a>
+        <a href="/instructor/documents" class="nav-item">
+            <span class="nav-icon">📄</span>
+            <span class="nav-label">Documents</span>
+        </a>
+    </nav>
+
+    <script>
+        // Auto-hide flash messages
+        setTimeout(() => {
+            document.querySelectorAll('.flash-message').forEach(msg => {
+                msg.style.opacity = '0';
+                setTimeout(() => msg.style.display = 'none', 300);
+            });
+        }, 5000);
+    </script>
+</body>
+</html>

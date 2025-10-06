@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title><%= title %></title>
+    <link rel="stylesheet" href="/css/instructor.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <!-- Mobile Header -->
+    <header class="mobile-header">
+        <div class="header-content">
+            <div class="header-title">
+                <h1>Stats & Hours</h1>
+                <p>Track your work and earnings</p>
+            </div>
+            <a href="/auth/logout" class="mobile-logout">Sign Out</a>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="main-content">
+        <!-- Overall Summary -->
+        <section class="stats-summary">
+            <h2 class="section-title">📊 Overall Summary</h2>
+            <div class="summary-cards">
+                <div class="summary-card primary">
+                    <div class="summary-icon">⏰</div>
+                    <div class="summary-content">
+                        <div class="summary-number"><%= totalStats.totalHours %></div>
+                        <div class="summary-label">Total Hours</div>
+                    </div>
+                </div>
+                <div class="summary-card success">
+                    <div class="summary-icon">📅</div>
+                    <div class="summary-content">
+                        <div class="summary-number"><%= totalStats.totalSessions %></div>
+                        <div class="summary-label">Total Sessions</div>
+                    </div>
+                </div>
+                <div class="summary-card warning">
+                    <div class="summary-icon">📋</div>
+                    <div class="summary-content">
+                        <div class="summary-number"><%= totalStats.totalCovers %></div>
+                        <div class="summary-label">Total Covers</div>
+                    </div>
+                </div>
+                <div class="summary-card info">
+                    <div class="summary-icon">💰</div>
+                    <div class="summary-content">
+                        <div class="summary-number">£<%= totalStats.totalEarnings.toFixed(2) %></div>
+                        <div class="summary-label">Total Earnings</div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Current Month -->
+        <% if (currentMonthStats) { %>
+            <section class="stats-section current-month">
+                <h2 class="section-title">🌟 This Month - <%= currentMonthStats.monthName %></h2>
+                
+                <div class="month-stats-grid">
+                    <div class="stat-box">
+                        <div class="stat-value"><%= currentMonthStats.hours %></div>
+                        <div class="stat-label">Hours</div>
+                    </div>
+                    <div class="stat-box">
+                        <div class="stat-value"><%= currentMonthStats.sessions %></div>
+                        <div class="stat-label">Sessions</div>
+                    </div>
+                    <div class="stat-box">
+                        <div class="stat-value"><%= currentMonthStats.covers %></div>
+                        <div class="stat-label">Covers</div>
+                    </div>
+                    <div class="stat-box earnings">
+                        <div class="stat-value">£<%= currentMonthStats.earnings.toFixed(2) %></div>
+                        <div class="stat-label">Earnings</div>
+                    </div>
+                </div>
+
+                <!-- Session Breakdown for Current Month -->
+                <% if (currentMonthStats.sessionBreakdown.length > 0) { %>
+                    <div class="breakdown-section">
+                        <h3 class="breakdown-title">Session Breakdown</h3>
+                        <div class="breakdown-list">
+                            <% currentMonthStats.sessionBreakdown.forEach(function(item) { %>
+                                <div class="breakdown-item">
+                                    <div class="breakdown-name">
+                                        <span class="breakdown-type <%= item.type %>"><%= item.type === 'permanent' ? '📅' : '📋' %></span>
+                                        <%= item.sessionName %>
+                                    </div>
+                                    <div class="breakdown-stats">
+                                        <span class="breakdown-count"><%= item.count %>x</span>
+                                        <span class="breakdown-hours"><%= item.hours %>h</span>
+                                        <% if (item.earnings > 0) { %>
+                                            <span class="breakdown-earnings">£<%= item.earnings.toFixed(2) %></span>
+                                        <% } %>
+                                    </div>
+                                </div>
+                            <% }); %>
+                        </div>
+                    </div>
+                <% } %>
+            </section>
+        <% } %>
+
+        <!-- Previous Months -->
+        <% if (previousMonthsStats.length > 0) { %>
+            <section class="stats-section">
+                <h2 class="section-title">📅 Previous Months</h2>
+                
+                <% previousMonthsStats.forEach(function(monthData) { %>
+                    <div class="month-card">
+                        <div class="month-header">
+                            <h3 class="month-name"><%= monthData.monthName %></h3>
+                        </div>
+                        
+                        <div class="month-stats-grid">
+                            <div class="stat-box">
+                                <div class="stat-value"><%= monthData.hours %></div>
+                                <div class="stat-label">Hours</div>
+                            </div>
+                            <div class="stat-box">
+                                <div class="stat-value"><%= monthData.sessions %></div>
+                                <div class="stat-label">Sessions</div>
+                            </div>
+                            <div class="stat-box">
+                                <div class="stat-value"><%= monthData.covers %></div>
+                                <div class="stat-label">Covers</div>
+                            </div>
+                            <div class="stat-box earnings">
+                                <div class="stat-value">£<%= monthData.earnings.toFixed(2) %></div>
+                                <div class="stat-label">Earnings</div>
+                            </div>
+                        </div>
+
+                        <!-- Session Breakdown for Previous Month -->
+                        <% if (monthData.sessionBreakdown.length > 0) { %>
+                            <div class="breakdown-section">
+                                <h4 class="breakdown-title">Session Breakdown</h4>
+                                <div class="breakdown-list">
+                                    <% monthData.sessionBreakdown.forEach(function(item) { %>
+                                        <div class="breakdown-item">
+                                            <div class="breakdown-name">
+                                                <span class="breakdown-type <%= item.type %>"><%= item.type === 'permanent' ? '📅' : '📋' %></span>
+                                                <%= item.sessionName %>
+                                            </div>
+                                            <div class="breakdown-stats">
+                                                <span class="breakdown-count"><%= item.count %>x</span>
+                                                <span class="breakdown-hours"><%= item.hours %>h</span>
+                                                <% if (item.earnings > 0) { %>
+                                                    <span class="breakdown-earnings">£<%= item.earnings.toFixed(2) %></span>
+                                                <% } %>
+                                            </div>
+                                        </div>
+                                    <% }); %>
+                                </div>
+                            </div>
+                        <% } %>
+                    </div>
+                <% }); %>
+            </section>
+        <% } %>
+
+        <!-- No Stats Yet -->
+        <% if (!currentMonthStats && previousMonthsStats.length === 0) { %>
+            <div class="empty-state">
+                <div class="empty-icon">📊</div>
+                <h3>No stats yet</h3>
+                <p>Your hours and earnings will appear here once you've taught sessions</p>
+            </div>
+        <% } %>
+    </main>
+
+    <!-- Bottom Navigation -->
+    <nav class="bottom-nav">
+        <a href="/instructor/timetable" class="nav-item">
+            <span class="nav-icon">📅</span>
+            <span class="nav-label">Timetable</span>
+        </a>
+        <a href="/instructor/open-cover" class="nav-item">
+            <span class="nav-icon">📋</span>
+            <span class="nav-label">Open Cover</span>
+        </a>
+        <a href="/instructor/stats" class="nav-item active">
+            <span class="nav-icon">📊</span>
+            <span class="nav-label">Stats</span>
+        </a>
+        <a href="/instructor/documents" class="nav-item">
+            <span class="nav-icon">📄</span>
+            <span class="nav-label">Documents</span>
+        </a>
+    </nav>
+</body>
+</html>
